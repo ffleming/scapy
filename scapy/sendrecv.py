@@ -219,7 +219,8 @@ def sndrcv(pks, pkt, timeout=None, inter=0, verbose=None, chainCC=False,
     return plist.SndRcvList(ans), plist.PacketList(remain, "Unanswered")
 
 
-def __gen_send(s, x, inter=0, loop=0, count=None, verbose=None, realtime=None, return_packets=False, *args, **kargs):
+def __gen_send(s, x, inter=0, loop=0, count=None, verbose=None, realtime=None, return_packets=False,
+      chainCC=False, *args, **kargs):
     if isinstance(x, str):
         x = conf.raw_layer(load=x)
     if not isinstance(x, Gen):
@@ -255,7 +256,10 @@ def __gen_send(s, x, inter=0, loop=0, count=None, verbose=None, realtime=None, r
             if loop < 0:
                 loop += 1
     except KeyboardInterrupt:
-        pass
+        if chainCC:
+            raise
+        else:
+            pass
     s.close()
     if verbose:
         print("\nSent %i packets." % n)
@@ -264,14 +268,14 @@ def __gen_send(s, x, inter=0, loop=0, count=None, verbose=None, realtime=None, r
         
 @conf.commands.register
 def send(x, inter=0, loop=0, count=None, verbose=None, realtime=None, return_packets=False, socket=None,
-         *args, **kargs):
+         chainCC=False, *args, **kargs):
     """Send packets at layer 3
 send(packets, [inter=0], [loop=0], [count=None], [verbose=conf.verb], [realtime=None], [return_packets=False],
-     [socket=None]) -> None"""
+     [socket=None], [chainCC=False]) -> None"""
     if socket is None:
         socket = conf.L3socket(*args, **kargs)
     return __gen_send(socket, x, inter=inter, loop=loop, count=count,verbose=verbose,
-                      realtime=realtime, return_packets=return_packets)
+                      realtime=realtime, return_packets=return_packets, chainCC=chainCC)
 
 @conf.commands.register
 def sendp(x, inter=0, loop=0, iface=None, iface_hint=None, count=None, verbose=None, realtime=None,
